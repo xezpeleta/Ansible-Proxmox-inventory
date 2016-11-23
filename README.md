@@ -4,10 +4,10 @@
 
 Proxmox dynamic inventory for Ansible. Based on [original plugin](https://raw.githubusercontent.com/ansible/ansible/devel/contrib/inventory/proxmox.py) from Mathieu Gauthier-Lafaye
 
-Changes:
-- Added option to ignore invalid SSL certificate (by @bmillemathias) [link](https://raw.githubusercontent.com/bmillemathias/ansible/1331d5fe2bd5e79be8a6221517a8fdd1e177baab/contrib/inventory/proxmox.py)
-- Compatible with a Proxmox cluster (@xezpeleta)
-- Added group 'running' (@xezpeleta)
+Changelog:
+- Added option to ignore invalid SSL certificate (by @bmillemathias) [PR](https://github.com/ansible/ansible/pull/17247)
+- Compatible with a Proxmox cluster (by @xezpeleta)
+- Added group 'running' (by @xezpeleta)
 
 ## Instructions
 

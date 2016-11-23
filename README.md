@@ -87,3 +87,13 @@ So if you want to exclude Windows machines, you could do the following:
 # Run a playbook in every running Linux machine in Proxmox
 ansible-playbook -i /etc/ansible/proxmox.py --limit='running,!windows' playbook-example/playbook.yml
 ```
+
+## Examples
+
+#### Show Linux distribution version for every VM in Proxmox cluster:
+
+```sh
+ ansible all -i /etc/ansible/proxmox.py --limit 'running,!windows' -m setup -u root -a 'filter=ansible_distribution_*'
+```
+
+Check more info about [Ansible setup module](http://docs.ansible.com/ansible/setup_module.html)

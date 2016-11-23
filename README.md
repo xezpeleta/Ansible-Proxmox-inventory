@@ -35,6 +35,8 @@ If you get a list with all the VM in your Proxmox cluster, everything is ok.
 I suggest you to use environment variables to store Proxmox credentials:
 
 ```sh
+# You also can do that using the file setenv.sh
+# Run the command: "source setenv.sh"
 export PROXMOX_URL=https://10.0.0.1:8006/
 export PROXMOX_USERNAME=apiuser@pve
 export PROXMOX_PASSWORD=apiuser1234

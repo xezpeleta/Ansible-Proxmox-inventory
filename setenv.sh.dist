@@ -1,6 +1,6 @@
 #! /bin/sh
 
-export PROXMOX_URL=http://10.0.0.1:8006
+export PROXMOX_URL=https://10.0.0.1:8006/
 export PROXMOX_USERNAME=apiuser@pve
 export PROXMOX_PASSWORD=apiuser1234
 export PROXMOX_INVALID_CERT=False

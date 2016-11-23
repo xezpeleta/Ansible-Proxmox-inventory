@@ -23,7 +23,7 @@ Let's test it:
 
 ```sh
 python /etc/ansible/proxmox.py \
-  --url=https://<your-proxmox-url>:8006 \
+  --url=https://<your-proxmox-url>:8006/ \
   --username=<proxmox-username> \
   --password=<proxmox-password> \
   --trust-invalid-certs \
@@ -35,7 +35,7 @@ If you get a list with all the VM in your Proxmox cluster, everything is ok.
 I suggest you to use environment variables to store Proxmox credentials:
 
 ```sh
-export PROXMOX_URL=http://10.0.0.1:8006
+export PROXMOX_URL=https://10.0.0.1:8006/
 export PROXMOX_USERNAME=apiuser@pve
 export PROXMOX_PASSWORD=apiuser1234
 export PROXMOX_INVALID_CERT=False

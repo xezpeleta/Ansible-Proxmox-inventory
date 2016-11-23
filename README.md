@@ -50,7 +50,8 @@ python /etc/ansible/proxmox.py --list --pretty
 Once you get this working, you can include the dynamic inventory in your ansible commands:
 
 ```sh
-ansible -i /etc/ansible/proxmox.py ...
+# Ping: connect to all VM in Proxmox using root user
+ansible -i /etc/ansible/proxmox.py all -m ping -u root
 ```
 
 ## Tricks
@@ -58,10 +59,11 @@ ansible -i /etc/ansible/proxmox.py ...
 If you prefer, you can limit the commands to the group "running":
 
 ```sh
-ansible-playbook -i /etc/ansible/proxmox.py --limit 'running' playbook.yml
+# Run a playbook in every running VM in Proxmox
+ansible-playbook -i /etc/ansible/proxmox.py --limit='running' playbook-example/playbook.yml
 ```
 
-Thanks to Matt Harris, you can use the Notes field in Proxmox to add a host to a group:
+Thanks to Matt Harris, you can now use the Notes field in Proxmox to add a host to a group:
 
 > Added support for Proxmox VE 4.x
 > Added support for using the Notes field of a VM to define groups and variables:
@@ -80,5 +82,6 @@ For instance, you can use the following JSON code in a VM host:
 So if you want to exclude Windows machines, you could do the following:
 
 ```sh
-ansible-playbook -i /etc/ansible/proxmox.py --limit 'running,!windows' playbook.yml
+# Run a playbook in every running Linux machine in Proxmox
+ansible-playbook -i /etc/ansible/proxmox.py --limit='running,!windows' playbook-example/playbook.yml
 ```

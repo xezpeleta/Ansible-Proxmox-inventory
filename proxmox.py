@@ -50,12 +50,16 @@ class ProxmoxVM(dict):
         return variables
 
 class ProxmoxVMList(list):
-    def __init__(self, data=[]):
+    def __init__(self, data=[], pxmxver=0.0):
+        self.ver = pxmxver
         for item in data:
             self.append(ProxmoxVM(item))
 
     def get_names(self):
-        return [vm['name'] for vm in self if vm['template'] != 1]
+        if self.ver >= 4.0:
+            return [vm['name'] for vm in self if vm['template'] != 1]
+        else:
+            return [vm['name'] for vm in self]
 
     def get_by_name(self, name):
         results = [vm for vm in self if vm['name'] == name]
@@ -71,6 +75,10 @@ class ProxmoxVMList(list):
 class ProxmoxPoolList(list):
     def get_names(self):
         return [pool['poolid'] for pool in self]
+
+class ProxmoxVersion(dict):
+    def get_version(self):
+        return float(self['version'])
 
 class ProxmoxPool(dict):
     def get_members_name(self):
@@ -119,7 +127,7 @@ class ProxmoxAPI(object):
         return ProxmoxNodeList(self.get('api2/json/nodes'))
 
     def vms_by_type(self, node, type):
-        return ProxmoxVMList(self.get('api2/json/nodes/{}/{}'.format(node, type)))
+        return ProxmoxVMList(self.get('api2/json/nodes/{}/{}'.format(node, type)), self.version().get_version())
 
     def vm_description_by_type(self, node, vm, type):
         return self.get('api2/json/nodes/{}/{}/{}/config'.format(node, type, vm))
@@ -136,11 +144,20 @@ class ProxmoxAPI(object):
     def node_lxc_description(self, node, vm):
         return self.vm_description_by_type(node, vm, 'lxc')
 
+    def node_openvz(self, node):
+        return self.vms_by_type(node, 'openvz')
+
+    def node_openvz_description(self, node, vm):
+        return self.vm_description_by_type(node, vm, 'openvz')
+
     def pools(self):
         return ProxmoxPoolList(self.get('api2/json/pools'))
 
     def pool(self, poolid):
         return ProxmoxPool(self.get('api2/json/pools/{}'.format(poolid)))
+
+    def version(self):
+        return ProxmoxVersion(self.get('api2/json/version'))
 
 def main_list(options):
     results = {
@@ -159,13 +176,21 @@ def main_list(options):
         qemu_list = proxmox_api.node_qemu(node)
         results['all']['hosts'] += qemu_list.get_names()
         results['_meta']['hostvars'].update(qemu_list.get_variables())
-        lxc_list = proxmox_api.node_lxc(node)
-        results['all']['hosts'] += lxc_list.get_names()
-        results['_meta']['hostvars'].update(lxc_list.get_variables())
+        if proxmox_api.version().get_version() >= 4.0:
+            lxc_list = proxmox_api.node_lxc(node)
+            results['all']['hosts'] += lxc_list.get_names()
+            results['_meta']['hostvars'].update(lxc_list.get_variables())
+        else:
+            openvz_list = proxmox_api.node_openvz(node)
+            results['all']['hosts'] += openvz_list.get_names()
+            results['_meta']['hostvars'].update(openvz_list.get_variables())
 
-	# Merge QEMU and LXC lists from this node
+	# Merge QEMU and Containers lists from this node
 	node_hostvars = qemu_list.get_variables().copy()
-	node_hostvars.update(lxc_list.get_variables())
+        if proxmox_api.version().get_version() >= 4.0:
+            node_hostvars.update(lxc_list.get_variables())
+        else:
+            node_hostvars.update(openvz_list.get_variables())
 
 	# Check only VM/containers from the current node
 	for vm in node_hostvars:

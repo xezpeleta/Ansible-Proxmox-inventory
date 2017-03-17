@@ -26,6 +26,7 @@
 # { "groups": ["utility", "databases"], "a": false, "b": true }
 
 import urllib
+
 try:
     import json
 except ImportError:
@@ -38,9 +39,11 @@ from six import iteritems
 
 from ansible.module_utils.urls import open_url
 
+
 class ProxmoxNodeList(list):
     def get_names(self):
         return [node['node'] for node in self]
+
 
 class ProxmoxVM(dict):
     def get_variables(self):
@@ -48,6 +51,7 @@ class ProxmoxVM(dict):
         for key, value in iteritems(self):
             variables['proxmox_' + key] = value
         return variables
+
 
 class ProxmoxVMList(list):
     def __init__(self, data=[], pxmxver=0.0):
@@ -72,17 +76,21 @@ class ProxmoxVMList(list):
 
         return variables
 
+
 class ProxmoxPoolList(list):
     def get_names(self):
         return [pool['poolid'] for pool in self]
+
 
 class ProxmoxVersion(dict):
     def get_version(self):
         return float(self['version'])
 
+
 class ProxmoxPool(dict):
     def get_members_name(self):
         return [member['name'] for member in self['members'] if member['template'] != 1]
+
 
 class ProxmoxAPI(object):
     def __init__(self, options, config_path):
@@ -112,9 +120,11 @@ class ProxmoxAPI(object):
         if not options.url:
             raise Exception('Missing mandatory parameter --url (or PROXMOX_URL or "url" key in config file).')
         elif not options.username:
-            raise Exception('Missing mandatory parameter --username (or PROXMOX_USERNAME or "username" key in config file).')
+            raise Exception(
+                'Missing mandatory parameter --username (or PROXMOX_USERNAME or "username" key in config file).')
         elif not options.password:
-            raise Exception('Missing mandatory parameter --password (or PROXMOX_PASSWORD or "password" key in config file).')
+            raise Exception(
+                'Missing mandatory parameter --password (or PROXMOX_PASSWORD or "password" key in config file).')
 
     def auth(self):
         request_path = '{}api2/json/access/ticket'.format(self.options.url)
@@ -124,9 +134,8 @@ class ProxmoxAPI(object):
             'password': self.options.password,
         })
 
-
         data = json.load(open_url(request_path, data=request_params,
-            validate_certs=self.options.validate))
+                                  validate_certs=self.options.validate))
 
         self.credentials = {
             'ticket': data['data']['ticket'],
@@ -138,7 +147,7 @@ class ProxmoxAPI(object):
 
         headers = {'Cookie': 'PVEAuthCookie={}'.format(self.credentials['ticket'])}
         request = open_url(request_path, data=data, headers=headers,
-                validate_certs=self.options.validate)
+                           validate_certs=self.options.validate)
 
         response = json.load(request)
         return response['data']
@@ -179,6 +188,7 @@ class ProxmoxAPI(object):
     def version(self):
         return ProxmoxVersion(self.get('api2/json/version'))
 
+
 def main_list(options, config_path):
     results = {
         'all': {
@@ -205,15 +215,15 @@ def main_list(options, config_path):
             results['all']['hosts'] += openvz_list.get_names()
             results['_meta']['hostvars'].update(openvz_list.get_variables())
 
-	# Merge QEMU and Containers lists from this node
-	node_hostvars = qemu_list.get_variables().copy()
+        # Merge QEMU and Containers lists from this node
+        node_hostvars = qemu_list.get_variables().copy()
         if proxmox_api.version().get_version() >= 4.0:
             node_hostvars.update(lxc_list.get_variables())
         else:
             node_hostvars.update(openvz_list.get_variables())
 
-	# Check only VM/containers from the current node
-	for vm in node_hostvars:
+        # Check only VM/containers from the current node
+        for vm in node_hostvars:
             vmid = results['_meta']['hostvars'][vm]['proxmox_vmid']
             try:
                 type = results['_meta']['hostvars'][vm]['proxmox_type']
@@ -242,15 +252,15 @@ def main_list(options, config_path):
                         }
                     results[group]['hosts'] += [vm]
 
-	    # Create group 'running'
-        # so you can: --limit 'running'
-	    status = results['_meta']['hostvars'][vm]['proxmox_status']
+            # Create group 'running'
+            # so you can: --limit 'running'
+            status = results['_meta']['hostvars'][vm]['proxmox_status']
             if status == 'running':
-    	        if 'running' not in results:
+                if 'running' not in results:
                     results['running'] = {
                         'hosts': []
                     }
-	        results['running']['hosts'] += [vm]
+                results['running']['hosts'] += [vm]
 
             results['_meta']['hostvars'][vm].update(metadata)
 
@@ -261,6 +271,7 @@ def main_list(options, config_path):
         }
 
     return results
+
 
 def main_host(options, config_path):
     proxmox_api = ProxmoxAPI(options, config_path)
@@ -273,6 +284,7 @@ def main_host(options, config_path):
             return qemu.get_variables()
 
     return {}
+
 
 def main():
     config_path = os.path.join(
@@ -314,6 +326,7 @@ def main():
         indent = 2
 
     print(json.dumps(data, indent=indent))
+
 
 if __name__ == '__main__':
     main()

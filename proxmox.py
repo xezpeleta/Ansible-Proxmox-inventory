@@ -94,21 +94,25 @@ class ProxmoxAPI(object):
                 os.path.dirname(os.path.abspath(__file__)),
                 os.path.splitext(os.path.basename(__file__))[0]+".json"
             )
+        if not options.url or not options.username or not options.password:
             if os.path.isfile(config_path):
                 with open(config_path, "r") as config_file:
                     config_data = json.load(config_file)
-                    try:
-                        options.url = config_data["url"]
-                    except KeyError:
-                        options.url = None
-                    try:
-                        options.username = config_data["username"]
-                    except KeyError:
-                        options.username = None
-                    try:
-                        options.password = config_data["password"]
-                    except KeyError:
-                        options.password = None
+                    if not options.url:
+                        try:
+                            options.url = config_data["url"]
+                        except KeyError:
+                            options.url = None
+                    if not options.username:
+                        try:
+                            options.username = config_data["username"]
+                        except KeyError:
+                            options.username = None
+                    if not options.password:
+                        try:
+                            options.password = config_data["password"]
+                        except KeyError:
+                            options.password = None
 
         if not options.url:
             raise Exception('Missing mandatory parameter --url (or PROXMOX_URL or "url" key in config file).')

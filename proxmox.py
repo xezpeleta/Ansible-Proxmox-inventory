@@ -89,12 +89,33 @@ class ProxmoxAPI(object):
         self.options = options
         self.credentials = None
 
+        if not options.url or options.username or options.password:
+            config_path = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                os.path.splitext(os.path.basename(__file__))[0]+".json"
+            )
+            if os.path.isfile(config_path):
+                with open(config_path, "r") as config_file:
+                    config_data = json.load(config_file)
+                    try:
+                        options.url = config_data["url"]
+                    except KeyError:
+                        options.url = None
+                    try:
+                        options.username = config_data["username"]
+                    except KeyError:
+                        options.username = None
+                    try:
+                        options.password = config_data["password"]
+                    except KeyError:
+                        options.password = None
+
         if not options.url:
-            raise Exception('Missing mandatory parameter --url (or PROXMOX_URL).')
+            raise Exception('Missing mandatory parameter --url (or PROXMOX_URL or "url" key in config file).')
         elif not options.username:
-            raise Exception('Missing mandatory parameter --username (or PROXMOX_USERNAME).')
+            raise Exception('Missing mandatory parameter --username (or PROXMOX_USERNAME or "username" key in config file).')
         elif not options.password:
-            raise Exception('Missing mandatory parameter --password (or PROXMOX_PASSWORD).')
+            raise Exception('Missing mandatory parameter --password (or PROXMOX_PASSWORD or "password" key in config file).')
 
     def auth(self):
         request_path = '{}api2/json/access/ticket'.format(self.options.url)

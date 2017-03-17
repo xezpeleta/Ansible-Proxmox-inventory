@@ -43,6 +43,17 @@ export PROXMOX_PASSWORD=apiuser1234
 export PROXMOX_INVALID_CERT=False
 ```
 
+You may also save your settings in a JSON file with the same name of the Python script, in its same folder (e.g.: if the downloaded script is `/etc/ansible/proxmox.py`, the configuration file will be `/etc/ansible/proxmox.json`): 
+
+```json
+{
+    "url": "https://10.0.0.1:8006/",
+    "username": "apiuser@pve",
+    "password": "apiuser1234",
+    "validateCert": false
+}
+```
+
 So now you can check it again without credential parameters:
 
 ```sh

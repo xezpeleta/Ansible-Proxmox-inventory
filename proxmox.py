@@ -26,6 +26,7 @@
 # { "groups": ["utility", "databases"], "a": false, "b": true }
 
 import urllib
+
 try:
     import json
 except ImportError:
@@ -38,9 +39,11 @@ from six import iteritems
 
 from ansible.module_utils.urls import open_url
 
+
 class ProxmoxNodeList(list):
     def get_names(self):
         return [node['node'] for node in self]
+
 
 class ProxmoxVM(dict):
     def get_variables(self):
@@ -48,6 +51,7 @@ class ProxmoxVM(dict):
         for key, value in iteritems(self):
             variables['proxmox_' + key] = value
         return variables
+
 
 class ProxmoxVMList(list):
     def __init__(self, data=[], pxmxver=0.0):
@@ -72,29 +76,55 @@ class ProxmoxVMList(list):
 
         return variables
 
+
 class ProxmoxPoolList(list):
     def get_names(self):
         return [pool['poolid'] for pool in self]
+
 
 class ProxmoxVersion(dict):
     def get_version(self):
         return float(self['version'])
 
+
 class ProxmoxPool(dict):
     def get_members_name(self):
         return [member['name'] for member in self['members'] if member['template'] != 1]
 
+
 class ProxmoxAPI(object):
-    def __init__(self, options):
+    def __init__(self, options, config_path):
         self.options = options
         self.credentials = None
 
+        if not options.url or not options.username or not options.password:
+            if os.path.isfile(config_path):
+                with open(config_path, "r") as config_file:
+                    config_data = json.load(config_file)
+                    if not options.url:
+                        try:
+                            options.url = config_data["url"]
+                        except KeyError:
+                            options.url = None
+                    if not options.username:
+                        try:
+                            options.username = config_data["username"]
+                        except KeyError:
+                            options.username = None
+                    if not options.password:
+                        try:
+                            options.password = config_data["password"]
+                        except KeyError:
+                            options.password = None
+
         if not options.url:
-            raise Exception('Missing mandatory parameter --url (or PROXMOX_URL).')
+            raise Exception('Missing mandatory parameter --url (or PROXMOX_URL or "url" key in config file).')
         elif not options.username:
-            raise Exception('Missing mandatory parameter --username (or PROXMOX_USERNAME).')
+            raise Exception(
+                'Missing mandatory parameter --username (or PROXMOX_USERNAME or "username" key in config file).')
         elif not options.password:
-            raise Exception('Missing mandatory parameter --password (or PROXMOX_PASSWORD).')
+            raise Exception(
+                'Missing mandatory parameter --password (or PROXMOX_PASSWORD or "password" key in config file).')
 
     def auth(self):
         request_path = '{}api2/json/access/ticket'.format(self.options.url)
@@ -104,9 +134,8 @@ class ProxmoxAPI(object):
             'password': self.options.password,
         })
 
-
         data = json.load(open_url(request_path, data=request_params,
-            validate_certs=self.options.validate))
+                                  validate_certs=self.options.validate))
 
         self.credentials = {
             'ticket': data['data']['ticket'],
@@ -118,7 +147,7 @@ class ProxmoxAPI(object):
 
         headers = {'Cookie': 'PVEAuthCookie={}'.format(self.credentials['ticket'])}
         request = open_url(request_path, data=data, headers=headers,
-                validate_certs=self.options.validate)
+                           validate_certs=self.options.validate)
 
         response = json.load(request)
         return response['data']
@@ -159,7 +188,8 @@ class ProxmoxAPI(object):
     def version(self):
         return ProxmoxVersion(self.get('api2/json/version'))
 
-def main_list(options):
+
+def main_list(options, config_path):
     results = {
         'all': {
             'hosts': [],
@@ -169,7 +199,7 @@ def main_list(options):
         }
     }
 
-    proxmox_api = ProxmoxAPI(options)
+    proxmox_api = ProxmoxAPI(options, config_path)
     proxmox_api.auth()
 
     for node in proxmox_api.nodes().get_names():
@@ -185,15 +215,15 @@ def main_list(options):
             results['all']['hosts'] += openvz_list.get_names()
             results['_meta']['hostvars'].update(openvz_list.get_variables())
 
-	# Merge QEMU and Containers lists from this node
-	node_hostvars = qemu_list.get_variables().copy()
+        # Merge QEMU and Containers lists from this node
+        node_hostvars = qemu_list.get_variables().copy()
         if proxmox_api.version().get_version() >= 4.0:
             node_hostvars.update(lxc_list.get_variables())
         else:
             node_hostvars.update(openvz_list.get_variables())
 
-	# Check only VM/containers from the current node
-	for vm in node_hostvars:
+        # Check only VM/containers from the current node
+        for vm in node_hostvars:
             vmid = results['_meta']['hostvars'][vm]['proxmox_vmid']
             try:
                 type = results['_meta']['hostvars'][vm]['proxmox_type']
@@ -222,15 +252,15 @@ def main_list(options):
                         }
                     results[group]['hosts'] += [vm]
 
-	    # Create group 'running'
-        # so you can: --limit 'running'
-	    status = results['_meta']['hostvars'][vm]['proxmox_status']
+            # Create group 'running'
+            # so you can: --limit 'running'
+            status = results['_meta']['hostvars'][vm]['proxmox_status']
             if status == 'running':
-    	        if 'running' not in results:
+                if 'running' not in results:
                     results['running'] = {
                         'hosts': []
                     }
-	        results['running']['hosts'] += [vm]
+                results['running']['hosts'] += [vm]
 
             results['_meta']['hostvars'][vm].update(metadata)
 
@@ -242,8 +272,9 @@ def main_list(options):
 
     return results
 
-def main_host(options):
-    proxmox_api = ProxmoxAPI(options)
+
+def main_host(options, config_path):
+    proxmox_api = ProxmoxAPI(options, config_path)
     proxmox_api.auth()
 
     for node in proxmox_api.nodes().get_names():
@@ -254,9 +285,23 @@ def main_host(options):
 
     return {}
 
-def main():
 
-    bool_validate_cert = False if os.environ.has_key('PROXMOX_INVALID_CERT') else True
+def main():
+    config_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        os.path.splitext(os.path.basename(__file__))[0] + ".json"
+    )
+
+    bool_validate_cert = True
+    if os.path.isfile(config_path):
+        with open(config_path, "r") as config_file:
+            config_data = json.load(config_file)
+            try:
+                bool_validate_cert = config_data["validateCert"]
+            except KeyError:
+                pass
+    if os.environ.has_key('PROXMOX_INVALID_CERT'):
+        bool_validate_cert = False
 
     parser = OptionParser(usage='%prog [options] --list | --host HOSTNAME')
     parser.add_option('--list', action="store_true", default=False, dest="list")
@@ -269,9 +314,9 @@ def main():
     (options, args) = parser.parse_args()
 
     if options.list:
-        data = main_list(options)
+        data = main_list(options, config_path)
     elif options.host:
-        data = main_host(options)
+        data = main_host(options, config_path)
     else:
         parser.print_help()
         sys.exit(1)
@@ -281,6 +326,7 @@ def main():
         indent = 2
 
     print(json.dumps(data, indent=indent))
+
 
 if __name__ == '__main__':
     main()

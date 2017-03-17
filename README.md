@@ -8,6 +8,8 @@ Changelog:
 - Added option to ignore invalid SSL certificate (by @bmillemathias) [PR](https://github.com/ansible/ansible/pull/17247)
 - Compatible with a Proxmox cluster (by @xezpeleta)
 - Added group 'running' (by @xezpeleta)
+- Added backwards compatibility with openvz and Proxmox3 (@isindir) [#1]
+- Added optional JSON configuration file (@nmaggioni) [#2]
 
 ## Instructions
 

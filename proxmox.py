@@ -285,7 +285,7 @@ def main():
         with open(config_path, "r") as config_file:
             config_data = json.load(config_file)
             try:
-                bool_validate_cert = config_data["trustInvalidCerts"]
+                bool_validate_cert = config_data["validateCert"]
             except KeyError:
                 pass
     if os.environ.has_key('PROXMOX_INVALID_CERT'):

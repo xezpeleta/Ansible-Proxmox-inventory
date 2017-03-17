@@ -1,0 +1,6 @@
+{
+    "url": "https://10.0.0.1:8006/",
+    "username": "apiuser@pve",
+    "password": "apiuser1234",
+    "validateCert": false
+}

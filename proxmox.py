@@ -85,15 +85,10 @@ class ProxmoxPool(dict):
         return [member['name'] for member in self['members'] if member['template'] != 1]
 
 class ProxmoxAPI(object):
-    def __init__(self, options):
+    def __init__(self, options, config_path):
         self.options = options
         self.credentials = None
 
-        if not options.url or options.username or options.password:
-            config_path = os.path.join(
-                os.path.dirname(os.path.abspath(__file__)),
-                os.path.splitext(os.path.basename(__file__))[0]+".json"
-            )
         if not options.url or not options.username or not options.password:
             if os.path.isfile(config_path):
                 with open(config_path, "r") as config_file:
@@ -184,7 +179,7 @@ class ProxmoxAPI(object):
     def version(self):
         return ProxmoxVersion(self.get('api2/json/version'))
 
-def main_list(options):
+def main_list(options, config_path):
     results = {
         'all': {
             'hosts': [],
@@ -194,7 +189,7 @@ def main_list(options):
         }
     }
 
-    proxmox_api = ProxmoxAPI(options)
+    proxmox_api = ProxmoxAPI(options, config_path)
     proxmox_api.auth()
 
     for node in proxmox_api.nodes().get_names():
@@ -267,8 +262,8 @@ def main_list(options):
 
     return results
 
-def main_host(options):
-    proxmox_api = ProxmoxAPI(options)
+def main_host(options, config_path):
+    proxmox_api = ProxmoxAPI(options, config_path)
     proxmox_api.auth()
 
     for node in proxmox_api.nodes().get_names():
@@ -280,8 +275,21 @@ def main_host(options):
     return {}
 
 def main():
+    config_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        os.path.splitext(os.path.basename(__file__))[0] + ".json"
+    )
 
-    bool_validate_cert = False if os.environ.has_key('PROXMOX_INVALID_CERT') else True
+    bool_validate_cert = True
+    if os.path.isfile(config_path):
+        with open(config_path, "r") as config_file:
+            config_data = json.load(config_file)
+            try:
+                bool_validate_cert = config_data["trustInvalidCerts"]
+            except KeyError:
+                pass
+    if os.environ.has_key('PROXMOX_INVALID_CERT'):
+        bool_validate_cert = False
 
     parser = OptionParser(usage='%prog [options] --list | --host HOSTNAME')
     parser.add_option('--list', action="store_true", default=False, dest="list")
@@ -294,9 +302,9 @@ def main():
     (options, args) = parser.parse_args()
 
     if options.list:
-        data = main_list(options)
+        data = main_list(options, config_path)
     elif options.host:
-        data = main_host(options)
+        data = main_host(options, config_path)
     else:
         parser.print_help()
         sys.exit(1)

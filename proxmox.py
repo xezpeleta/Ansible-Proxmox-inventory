@@ -127,7 +127,7 @@ class ProxmoxAPI(object):
                 'Missing mandatory parameter --password (or PROXMOX_PASSWORD or "password" key in config file).')
 
     def auth(self):
-        request_path = '{}api2/json/access/ticket'.format(self.options.url)
+        request_path = '{0}api2/json/access/ticket'.format(self.options.url)
 
         request_params = urllib.urlencode({
             'username': self.options.username,
@@ -143,9 +143,9 @@ class ProxmoxAPI(object):
         }
 
     def get(self, url, data=None):
-        request_path = '{}{}'.format(self.options.url, url)
+        request_path = '{0}{1}'.format(self.options.url, url)
 
-        headers = {'Cookie': 'PVEAuthCookie={}'.format(self.credentials['ticket'])}
+        headers = {'Cookie': 'PVEAuthCookie={0}'.format(self.credentials['ticket'])}
         request = open_url(request_path, data=data, headers=headers,
                            validate_certs=self.options.validate)
 
@@ -156,10 +156,10 @@ class ProxmoxAPI(object):
         return ProxmoxNodeList(self.get('api2/json/nodes'))
 
     def vms_by_type(self, node, type):
-        return ProxmoxVMList(self.get('api2/json/nodes/{}/{}'.format(node, type)), self.version().get_version())
+        return ProxmoxVMList(self.get('api2/json/nodes/{0}/{1}'.format(node, type)), self.version().get_version())
 
     def vm_description_by_type(self, node, vm, type):
-        return self.get('api2/json/nodes/{}/{}/{}/config'.format(node, type, vm))
+        return self.get('api2/json/nodes/{0}/{1}/{2}/config'.format(node, type, vm))
 
     def node_qemu(self, node):
         return self.vms_by_type(node, 'qemu')
@@ -183,7 +183,7 @@ class ProxmoxAPI(object):
         return ProxmoxPoolList(self.get('api2/json/pools'))
 
     def pool(self, poolid):
-        return ProxmoxPool(self.get('api2/json/pools/{}'.format(poolid)))
+        return ProxmoxPool(self.get('api2/json/pools/{0}'.format(poolid)))
 
     def version(self):
         return ProxmoxVersion(self.get('api2/json/version'))

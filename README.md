@@ -4,7 +4,22 @@
 
 Proxmox dynamic inventory for Ansible. Based on [original plugin](https://raw.githubusercontent.com/ansible/ansible/devel/contrib/inventory/proxmox.py) from Mathieu Gauthier-Lafaye
 
-Changelog:
+### How does it work?
+
+It will generate an inventory on the fly with all your VMs stored in your ProxmoxVE. Therefore, Ansible will be able to connect to all your VM.
+
+### Requirements
+
+Resolvable VM names: the inventory script collects the VM names (and not IP addresses!). That's why your computer must be able to resolve these names; either with the DNS server or your */etc/hosts* 
+
+
+### Features
+
+- **ProxmoxVE cluster**: if your have a ProxmoxVE cluster, it will gather the whole VM list from your cluster
+- **Advanced filtering**: you can filter the VM list based in their status or a custom tag included in the `Notes` field
+
+
+### Changelog:
 - Added option to ignore invalid SSL certificate (by @bmillemathias) [PR](https://github.com/ansible/ansible/pull/17247)
 - Compatible with a Proxmox cluster (by @xezpeleta)
 - Added group 'running' (by @xezpeleta)

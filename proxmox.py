@@ -37,6 +37,8 @@ from optparse import OptionParser
 
 from six import iteritems
 
+from six.moves.urllib.error import HTTPError
+
 from ansible.module_utils.urls import open_url
 
 
@@ -203,7 +205,14 @@ def main_list(options, config_path):
     proxmox_api.auth()
 
     for node in proxmox_api.nodes().get_names():
-        qemu_list = proxmox_api.node_qemu(node)
+        try:
+            qemu_list = proxmox_api.node_qemu(node)
+        except HTTPError as error:
+            # the API raises code 595 when target node is unavailable, skip it
+            if error.code == 595:
+                continue
+            # if it was some other error, reraise it
+            raise error
         results['all']['hosts'] += qemu_list.get_names()
         results['_meta']['hostvars'].update(qemu_list.get_variables())
         if proxmox_api.version().get_version() >= 4.0:

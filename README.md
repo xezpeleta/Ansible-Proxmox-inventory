@@ -25,6 +25,8 @@ Resolvable VM names: the inventory script collects the VM names (and not IP addr
 - Added group 'running' (by @xezpeleta)
 - Added backwards compatibility with openvz and Proxmox3 (@isindir) [#1]
 - Added optional JSON configuration file (@nmaggioni) [#2]
+- Added backwards compatibility with python 2.6 (@isindir) [#3]
+- Handle cases where node is unavailable (@andor44) [#7]
 
 ## Instructions
 

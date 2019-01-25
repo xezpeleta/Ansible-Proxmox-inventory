@@ -25,7 +25,7 @@
 #
 # { "groups": ["utility", "databases"], "a": false, "b": true }
 
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 try:
     import json
@@ -131,7 +131,7 @@ class ProxmoxAPI(object):
     def auth(self):
         request_path = '{0}api2/json/access/ticket'.format(self.options.url)
 
-        request_params = urllib.urlencode({
+        request_params = urllib.parse.urlencode({
             'username': self.options.username,
             'password': self.options.password,
         })
@@ -309,7 +309,7 @@ def main():
                 bool_validate_cert = config_data["validateCert"]
             except KeyError:
                 pass
-    if os.environ.has_key('PROXMOX_INVALID_CERT'):
+    if 'PROXMOX_INVALID_CERT' in os.environ:
         bool_validate_cert = False
 
     parser = OptionParser(usage='%prog [options] --list | --host HOSTNAME')
@@ -334,7 +334,7 @@ def main():
     if options.pretty:
         indent = 2
 
-    print(json.dumps(data, indent=indent))
+    print((json.dumps(data, indent=indent)))
 
 
 if __name__ == '__main__':

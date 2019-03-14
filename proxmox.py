@@ -25,7 +25,7 @@
 #
 # { "groups": ["utility", "databases"], "a": false, "b": true }
 
-import urllib.request, urllib.parse, urllib.error
+from six.moves.urllib import request, parse, error
 
 try:
     import json
@@ -131,7 +131,7 @@ class ProxmoxAPI(object):
     def auth(self):
         request_path = '{0}api2/json/access/ticket'.format(self.options.url)
 
-        request_params = urllib.parse.urlencode({
+        request_params = parse.urlencode({
             'username': self.options.username,
             'password': self.options.password,
         })

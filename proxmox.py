@@ -127,6 +127,10 @@ class ProxmoxAPI(object):
         elif not options.password:
             raise Exception(
                 'Missing mandatory parameter --password (or PROXMOX_PASSWORD or "password" key in config file).')
+        
+        # URL should end with a trailing slash
+        if not options.url.endswith("/"):
+            options.url = options.url + "/"
 
     def auth(self):
         request_path = '{0}api2/json/access/ticket'.format(self.options.url)

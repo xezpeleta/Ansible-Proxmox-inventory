@@ -91,7 +91,7 @@ class ProxmoxVersion(dict):
 
 class ProxmoxPool(dict):
     def get_members_name(self):
-        return [member['name'] for member in self['members'] if member['template'] != 1]
+        return [member['name'] for member in self['members'] if (member['type'] == 'qemu' or member['type'] == 'lxc') and member['template'] != 1]
 
 
 class ProxmoxAPI(object):

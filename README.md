@@ -27,6 +27,8 @@ Resolvable VM names: the inventory script collects the VM names (and not IP addr
 - Added optional JSON configuration file (@nmaggioni) [#2]
 - Added backwards compatibility with python 2.6 (@isindir) [#3]
 - Handle cases where node is unavailable (@andor44) [#7]
+- Fix python 2 and 3 compatibility (@gardar) [#14]
+- Filter on qemu and lxc resources only (@adubreuiltk) [#16]
 
 ## Instructions
 

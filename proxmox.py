@@ -34,6 +34,7 @@ except ImportError:
 import os
 import sys
 import socket
+import re
 from optparse import OptionParser
 
 from six import iteritems
@@ -217,6 +218,18 @@ class ProxmoxAPI(object):
                         pass
         return None
     
+    def openvz_ip_address(self, node, vm):
+        try:
+            config = self.get('api2/json/nodes/{0}/lxc/{1}/config'.format(node, vm))
+        except HTTPError:
+            return False
+        
+        try:
+            ip_address = re.search('ip=(\d*\.\d*\.\d*\.\d*)', config['net0']).group(1)
+            return ip_address
+        except:
+            return False
+    
     def version(self):
         return ProxmoxVersion(self.get('api2/json/version'))
 
@@ -282,9 +295,12 @@ def main_list(options, config_path):
                     'notes': description
                 }
             
-            # If Qemu Agent is enabled, try to guess the IP address
-            if proxmox_api.qemu_agent(node, vmid):
-                results['_meta']['hostvars'][vm]['ansible_host'] = proxmox_api.qemu_ip_address(node, vmid)
+            if type == 'qemu':
+                # If Qemu Agent is enabled, try to guess the IP address
+                if proxmox_api.qemu_agent(node, vmid):
+                    results['_meta']['hostvars'][vm]['ansible_host'] = proxmox_api.qemu_ip_address(node, vmid)
+            else:
+                results['_meta']['hostvars'][vm]['ansible_host'] = proxmox_api.openvz_ip_address(node, vmid)
             
             if 'groups' in metadata:
                 # print metadata

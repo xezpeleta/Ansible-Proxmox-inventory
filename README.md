@@ -29,6 +29,7 @@ Resolvable VM names: the inventory script collects the VM names (and not IP addr
 - Handle cases where node is unavailable (@andor44) [#7]
 - Fix python 2 and 3 compatibility (@gardar) [#14]
 - Filter on qemu and lxc resources only (@adubreuiltk) [#16]
+- Get the IP address automatically (@xezpeleta) [#8]
 
 ## Instructions
 

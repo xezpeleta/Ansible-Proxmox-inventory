@@ -33,6 +33,8 @@ except ImportError:
     import simplejson as json
 import os
 import sys
+import socket
+import re
 from optparse import OptionParser
 
 from six import iteritems
@@ -190,7 +192,45 @@ class ProxmoxAPI(object):
 
     def pool(self, poolid):
         return ProxmoxPool(self.get('api2/json/pools/{0}'.format(poolid)))
-
+    
+    def qemu_agent(self, node, vm):
+        try:
+            info = self.get('api2/json/nodes/{0}/qemu/{1}/agent/info'.format(node, vm))
+            if info is not None:
+                return True
+        except HTTPError as error:
+            return False
+    
+    def qemu_ip_address(self, node, vm):
+        ip_address = None
+        networks = self.get('api2/json/nodes/{0}/qemu/{1}/agent/network-get-interfaces'.format(node, vm))['result']
+        if networks:
+            if type(network) is dict:
+                for network in networks:
+                    for address in network['ip-addresses']:
+                        ip_address = address['ip-address']
+                        try:
+                            # IP address validation
+                            if socket.inet_aton(ip_address):
+                                # Ignore localhost
+                                if ip_address != '127.0.0.1':
+                                    return ip_address
+                        except socket.error:
+                            pass
+        return None
+    
+    def openvz_ip_address(self, node, vm):
+        try:
+            config = self.get('api2/json/nodes/{0}/lxc/{1}/config'.format(node, vm))
+        except HTTPError:
+            return False
+        
+        try:
+            ip_address = re.search('ip=(\d*\.\d*\.\d*\.\d*)', config['net0']).group(1)
+            return ip_address
+        except:
+            return False
+    
     def version(self):
         return ProxmoxVersion(self.get('api2/json/version'))
 
@@ -255,7 +295,14 @@ def main_list(options, config_path):
                 metadata = {
                     'notes': description
                 }
-
+            
+            if type == 'qemu':
+                # If Qemu Agent is enabled, try to guess the IP address
+                if proxmox_api.qemu_agent(node, vmid):
+                    results['_meta']['hostvars'][vm]['ansible_host'] = proxmox_api.qemu_ip_address(node, vmid)
+            else:
+                results['_meta']['hostvars'][vm]['ansible_host'] = proxmox_api.openvz_ip_address(node, vmid)
+            
             if 'groups' in metadata:
                 # print metadata
                 for group in metadata['groups']:

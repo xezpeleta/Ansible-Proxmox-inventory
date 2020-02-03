@@ -205,17 +205,18 @@ class ProxmoxAPI(object):
         ip_address = None
         networks = self.get('api2/json/nodes/{0}/qemu/{1}/agent/network-get-interfaces'.format(node, vm))['result']
         if networks:
-            for network in networks:
-                for address in network['ip-addresses']:
-                    ip_address = address['ip-address']
-                    try:
-                        # IP address validation
-                        if socket.inet_aton(ip_address):
-                            # Ignore localhost
-                            if ip_address != '127.0.0.1':
-                                return ip_address
-                    except socket.error:
-                        pass
+            if type(network) is dict:
+                for network in networks:
+                    for address in network['ip-addresses']:
+                        ip_address = address['ip-address']
+                        try:
+                            # IP address validation
+                            if socket.inet_aton(ip_address):
+                                # Ignore localhost
+                                if ip_address != '127.0.0.1':
+                                    return ip_address
+                        except socket.error:
+                            pass
         return None
     
     def openvz_ip_address(self, node, vm):

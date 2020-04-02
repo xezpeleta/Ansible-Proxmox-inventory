@@ -207,16 +207,15 @@ class ProxmoxAPI(object):
         if networks:
             if type(networks) is dict:
                 for network in networks:
-                    for address in network['ip-addresses']:
-                        ip_address = address['ip-address']
-                        try:
-                            # IP address validation
-                            if socket.inet_aton(ip_address):
-                                # Ignore localhost
-                                if ip_address != '127.0.0.1':
-                                    return ip_address
-                        except socket.error:
-                            pass
+                    for ip_address in ['ip-address']:
+                         try:
+                             # IP address validation
+                             if socket.inet_aton(ip_address):
+                                 # Ignore localhost
+                                 if ip_address != '127.0.0.1':
+                                     return ip_address
+                         except socket.error:
+                             pass
         return None
     
     def openvz_ip_address(self, node, vm):

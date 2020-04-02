@@ -205,7 +205,7 @@ class ProxmoxAPI(object):
         ip_address = None
         networks = self.get('api2/json/nodes/{0}/qemu/{1}/agent/network-get-interfaces'.format(node, vm))['result']
         if networks:
-            if type(network) is dict:
+            if type(networks) is dict:
                 for network in networks:
                     for address in network['ip-addresses']:
                         ip_address = address['ip-address']

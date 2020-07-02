@@ -1,1 +1,9 @@
 setenv*.sh
+.venv/
+.idea
+.idea/.gitignore
+.idea/Ansible-Proxmox-inventory.iml
+.idea/inspectionProfiles/
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml

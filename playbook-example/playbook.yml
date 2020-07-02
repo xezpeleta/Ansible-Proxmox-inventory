@@ -1,8 +1,8 @@
 ---
 # Example:
 # ansible-playbook -i /etc/ansible/proxmox.py --limit 'running' playbook.yml
-- hosts: all
-  remote_user: root
+- hosts: running
+  remote_user: debian
 
   tasks:
     - name: get hostname

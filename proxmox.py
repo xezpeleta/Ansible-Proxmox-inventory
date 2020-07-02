@@ -205,15 +205,15 @@ class ProxmoxAPI(object):
         ip_address = None
         networks = self.get('api2/json/nodes/{0}/qemu/{1}/agent/network-get-interfaces'.format(node, vm))['result']
         if networks:
-            if type(networks) is dict:
+            if type(networks) is list:
                 for network in networks:
-                    for ip_address in ['ip-address']:
+                    for ip_address in network['ip-addresses']:
                          try:
                              # IP address validation
-                             if socket.inet_aton(ip_address):
+                             if socket.inet_aton(ip_address['ip-address']):
                                  # Ignore localhost
-                                 if ip_address != '127.0.0.1':
-                                     return ip_address
+                                 if ip_address['ip-address'] != '127.0.0.1':
+                                     return ip_address['ip-address']
                          except socket.error:
                              pass
         return None
@@ -265,7 +265,6 @@ def main_list(options, config_path):
         else:
             openvz_list = proxmox_api.node_openvz(node)
             results['all']['hosts'] += openvz_list.get_names()
-            results['_meta']['hostvars'].update(openvz_list.get_variables())
 
         # Merge QEMU and Containers lists from this node
         node_hostvars = qemu_list.get_variables().copy()
@@ -294,7 +293,7 @@ def main_list(options, config_path):
                 metadata = {
                     'notes': description
                 }
-            
+
             if type == 'qemu':
                 # If Qemu Agent is enabled, try to guess the IP address
                 if proxmox_api.qemu_agent(node, vmid):
@@ -320,6 +319,11 @@ def main_list(options, config_path):
                         'hosts': []
                     }
                 results['running']['hosts'] += [vm]
+
+            # Create k8s-cluster:children
+            results['k8s-cluster'] = {
+                'children': ["kube-master", "kube-node", "calico-rr"]
+            }
 
             results['_meta']['hostvars'][vm].update(metadata)
 

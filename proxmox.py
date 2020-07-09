@@ -217,19 +217,31 @@ class ProxmoxAPI(object):
                          except socket.error:
                              pass
         return None
-    
+
     def openvz_ip_address(self, node, vm):
         try:
             config = self.get('api2/json/nodes/{0}/lxc/{1}/config'.format(node, vm))
         except HTTPError:
             return False
-        
+
         try:
-            ip_address = re.search('ip=(\d*\.\d*\.\d*\.\d*)', config['net0']).group(1)
-            return ip_address
+            config_values = config['net0'].split(',')
+            network_config = {}
+            for setup in config_values:
+                key, value = setup.split('=')
+                network_config[key] = value
         except:
             return False
-    
+
+        try:
+            ip_address = network_config['ip']
+            if ip_address != 'dhcp':
+                return ip_address
+            else:
+                return False
+        except:
+            return False
+
     def version(self):
         return ProxmoxVersion(self.get('api2/json/version'))
 
@@ -301,6 +313,12 @@ def main_list(options, config_path):
                     results['_meta']['hostvars'][vm]['ansible_host'] = proxmox_api.qemu_ip_address(node, vmid)
             else:
                 results['_meta']['hostvars'][vm]['ansible_host'] = proxmox_api.openvz_ip_address(node, vmid)
+            # Remove ansible_host keys if we failed to guess the IP address
+            try:
+                if not results['_meta']['hostvars'][vm]['ansible_host']:
+                    results['_meta']['hostvars'][vm].pop('ansible_host', None)
+            except KeyError:
+                pass
             
             if 'groups' in metadata:
                 # print metadata

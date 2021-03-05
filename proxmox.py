@@ -264,7 +264,7 @@ def main_list(options, config_path):
             qemu_list = proxmox_api.node_qemu(node)
         except HTTPError as error:
             # the API raises code 595 when target node is unavailable, skip it
-            if error.code == 595:
+            if error.code == 595 or error.code == 596:
                 continue
             # if it was some other error, reraise it
             raise error

@@ -321,6 +321,7 @@ def main_list(options, config_path):
                 type = results['_meta']['hostvars'][vm]['proxmox_type']
             except KeyError:
                 type = 'qemu'
+                results['_meta']['hostvars'][vm]['proxmox_type'] = 'qemu'
             try:
                 description = proxmox_api.vm_description_by_type(node, vmid, type)['description']
             except KeyError:

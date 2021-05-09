@@ -18,19 +18,6 @@ Resolvable VM names: the inventory script collects the VM names (and not IP addr
 - **ProxmoxVE cluster**: if your have a ProxmoxVE cluster, it will gather the whole VM list from your cluster
 - **Advanced filtering**: you can filter the VM list based in their status or a custom tag included in the `Notes` field
 
-
-### Changelog:
-- Added option to ignore invalid SSL certificate (by @bmillemathias) [PR](https://github.com/ansible/ansible/pull/17247)
-- Compatible with a Proxmox cluster (by @xezpeleta)
-- Added group 'running' (by @xezpeleta)
-- Added backwards compatibility with openvz and Proxmox3 (@isindir) [#1]
-- Added optional JSON configuration file (@nmaggioni) [#2]
-- Added backwards compatibility with python 2.6 (@isindir) [#3]
-- Handle cases where node is unavailable (@andor44) [#7]
-- Fix python 2 and 3 compatibility (@gardar) [#14]
-- Filter on qemu and lxc resources only (@adubreuiltk) [#16]
-- Get the IP address automatically (@xezpeleta) [#8]
-
 ## Instructions
 
 Download **proxmox.py** to */etc/ansible/* directory:

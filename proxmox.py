@@ -200,36 +200,7 @@ class ProxmoxAPI(object):
                 return True
         except HTTPError as error:
             return False
-    
-    def qemu_ip_address(self, node, vm):
-        ip_address = None
-        networks = self.get('api2/json/nodes/{0}/qemu/{1}/agent/network-get-interfaces'.format(node, vm))['result']
-        if networks:
-            if type(networks) is dict:
-                for network in networks:
-                    for ip_address in ['ip-address']:
-                        try:
-                            # IP address validation
-                            if socket.inet_aton(ip_address):
-                                # Ignore localhost
-                                if ip_address != '127.0.0.1':
-                                    return ip_address
-                        except socket.error:
-                            pass
-            elif type(networks) is list:
-                for network in networks:
-                    if 'ip-addresses' in network:
-                        for ip_address in network['ip-addresses']:
-                            try:
-                                # IP address validation
-                                if socket.inet_aton(ip_address['ip-address']):
-                                    # Ignore localhost
-                                    if ip_address['ip-address'] != '127.0.0.1':
-                                        return ip_address['ip-address']
-                            except socket.error:
-                                pass
-        return None
-    
+
     def openvz_ip_address(self, node, vm):
         try:
             config = self.get('api2/json/nodes/{0}/lxc/{1}/config'.format(node, vm))
@@ -244,6 +215,63 @@ class ProxmoxAPI(object):
     
     def version(self):
         return ProxmoxVersion(self.get('api2/json/version'))
+
+    def qemu_agent_info(self, node, vm):
+        system_info = SystemInfo()
+        osinfo = self.get('api2/json/nodes/{0}/qemu/{1}/agent/get-osinfo'.format(node, vm))['result']
+        if osinfo:
+            if 'id' in osinfo:
+                system_info.id = osinfo['id']
+
+            if 'name' in osinfo:
+                system_info.name = osinfo['name']
+
+            if 'machine' in osinfo:
+                system_info.machine = osinfo['machine']
+
+            if 'kernel-release' in osinfo:
+                system_info.kernel = osinfo['kernel-release']
+
+            if 'version-id' in osinfo:
+                system_info.version_id = osinfo['version-id']
+
+        ip_address = None
+        networks = self.get('api2/json/nodes/{0}/qemu/{1}/agent/network-get-interfaces'.format(node, vm))['result']
+        if networks:
+            if type(networks) is dict:
+                for network in networks:
+                    for ip_address in ['ip-address']:
+                        try:
+                            # IP address validation
+                            if socket.inet_aton(ip_address):
+                                # Ignore localhost
+                                if ip_address != '127.0.0.1':
+                                    system_info.ip_address = ip_address
+                        except socket.error:
+                            pass
+            elif type(networks) is list:
+                for network in networks:
+                    if 'ip-addresses' in network:
+                        for ip_address in network['ip-addresses']:
+                            try:
+                                # IP address validation
+                                if socket.inet_aton(ip_address['ip-address']):
+                                    # Ignore localhost
+                                    if ip_address['ip-address'] != '127.0.0.1':
+                                        system_info.ip_address = ip_address['ip-address']
+                            except socket.error:
+                                pass
+
+        return system_info
+
+
+class SystemInfo(object):
+    id = ""
+    name = ""
+    machine = ""
+    kernel = ""
+    version_id = ""
+    ip_address = ""
 
 
 def main_list(options, config_path):
@@ -308,9 +336,15 @@ def main_list(options, config_path):
                 }
             
             if type == 'qemu':
-                # If Qemu Agent is enabled, try to guess the IP address
+                # Retrieve information from QEMU agent if installed
                 if proxmox_api.qemu_agent(node, vmid):
-                    results['_meta']['hostvars'][vm]['ansible_host'] = proxmox_api.qemu_ip_address(node, vmid)
+                    system_info = proxmox_api.qemu_agent_info(node, vmid)
+                    results['_meta']['hostvars'][vm]['ansible_host'] = system_info.ip_address
+                    results['_meta']['hostvars'][vm]['proxmox_os_id'] = system_info.id
+                    results['_meta']['hostvars'][vm]['proxmox_os_name'] = system_info.name
+                    results['_meta']['hostvars'][vm]['proxmox_os_machine'] = system_info.machine
+                    results['_meta']['hostvars'][vm]['proxmox_os_kernel'] = system_info.kernel
+                    results['_meta']['hostvars'][vm]['proxmox_os_version_id'] = system_info.version_id
             else:
                 results['_meta']['hostvars'][vm]['ansible_host'] = proxmox_api.openvz_ip_address(node, vmid)
             

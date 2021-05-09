@@ -367,6 +367,14 @@ def main_list(options, config_path):
                     }
                 results['running']['hosts'] += [vm]
 
+            if 'proxmox_os_id' in results['_meta']['hostvars'][vm]:
+                osid = results['_meta']['hostvars'][vm]['proxmox_os_id']
+                if osid not in results:
+                    results[osid] = {
+                        'hosts': []
+                    }
+                results[osid]['hosts'] += [vm]
+
             results['_meta']['hostvars'][vm].update(metadata)
 
     # pools

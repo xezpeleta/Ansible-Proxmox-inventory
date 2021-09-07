@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.0.2
+- Proxmox v7 compatibility check if template key exists (by @maynero) [#39](https://github.com/xezpeleta/Ansible-Proxmox-inventory/pull/39)
+
+## v1.0.1
+- Ommit group when OS id is empty (d7b0139)
+
 ## v1.0.0
 - Added option to ignore invalid SSL certificate (by @bmillemathias) [PR](https://github.com/ansible/ansible/pull/17247)
 - Compatible with a Proxmox cluster (by @xezpeleta)

@@ -407,10 +407,12 @@ def main():
         os.path.splitext(os.path.basename(__file__))[0] + ".json"
     )
 
+    bool_config_file = False
     bool_validate_cert = True
     if os.path.isfile(config_path):
         with open(config_path, "r") as config_file:
             config_data = json.load(config_file)
+            bool_config_file = True
             try:
                 bool_validate_cert = config_data["validateCert"]
             except KeyError:
@@ -419,7 +421,6 @@ def main():
         bool_validate_cert = False
 
     parser = OptionParser(usage='%prog [options] --list | --host HOSTNAME')
-    parser.add_option('--list', action="store_true", default=False, dest="list")
     parser.add_option('--host', dest="host")
     parser.add_option('--url', default=os.environ.get('PROXMOX_URL'), dest='url')
     parser.add_option('--username', default=os.environ.get('PROXMOX_USERNAME'), dest='username')
@@ -428,9 +429,9 @@ def main():
     parser.add_option('--trust-invalid-certs', action="store_false", default=bool_validate_cert, dest='validate')
     (options, args) = parser.parse_args()
 
-    if options.list:
+    if options.host:
         data = main_list(options, config_path)
-    elif options.host:
+    elif bool_config_file:
         data = main_host(options, config_path)
     else:
         parser.print_help()

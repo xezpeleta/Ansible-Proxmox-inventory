@@ -363,7 +363,7 @@ def main_list(options, config_path):
                     results['_meta']['hostvars'][vm]['proxmox_os_version_id'] = system_info.version_id
             else:
              # IF IP is empty (due DHCP, take hostname instead)
-                if proxmox_api.openvz_ip_address(node, vm) == False:
+                if proxmox_api.openvz_ip_address(node, vm) != False:
                     results['_meta']['hostvars'][vm]['ansible_host'] = proxmox_api.openvz_ip_address(node, vmid)
                 else:
                     results['_meta']['hostvars'][vm]['ansible_host'] = proxmox_api.lxc_hostname(node, vmid)

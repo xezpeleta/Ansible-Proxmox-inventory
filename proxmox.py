@@ -244,10 +244,12 @@ class ProxmoxAPI(object):
                         try:
                             # IP address validation
                             if socket.inet_aton(ip_address):
-                                # Ignore localhost and docker IPs
+                                # Ignore localhost, docker, kubernetes IPs
                                 if (ip_address != '127.0.0.1' and # Ignore localhost
                                     "02:42" not in network["hardware-address"] and # Ingore Docker Interfaces
-                                    "veth" not in network["name"]): # Ignore virtual ethernet ports
+                                    "veth" not in network["name"]): and # Ignore virtual ethernet ports
+                                    "flannel" not in network["name"]): and # Ignore virtual ethernet ports
+                                    "calico" not in network["name"]):  # Ignore virtual ethernet ports
                                     system_info.ip_address = ip_address
                         except socket.error:
                             pass

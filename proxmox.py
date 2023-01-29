@@ -129,7 +129,7 @@ class ProxmoxAPI(object):
         elif not options.password:
             raise Exception(
                 'Missing mandatory parameter --password (or PROXMOX_PASSWORD or "password" key in config file).')
-        
+
         # URL should end with a trailing slash
         if not options.url.endswith("/"):
             options.url = options.url + "/"
@@ -210,6 +210,21 @@ class ProxmoxAPI(object):
         try:
             ip_address = re.search('ip=(\d*\.\d*\.\d*\.\d*)', config['net0']).group(1)
             return ip_address
+        except:
+            return False
+
+### PATCH for LXC HOSTNAME 
+### GET HOSTNAME for LXC-Containers
+
+    def lxc_hostname(self, node, vm):
+        try:
+            config = self.get('api2/json/nodes/{0}/lxc/{1}/config'.format(node, vm))
+        except HTTPError:
+            return False
+        
+        try:
+            hostname = config['hostname']
+            return hostname
         except:
             return False
     
@@ -352,8 +367,12 @@ def main_list(options, config_path):
                     results['_meta']['hostvars'][vm]['proxmox_os_kernel'] = system_info.kernel
                     results['_meta']['hostvars'][vm]['proxmox_os_version_id'] = system_info.version_id
             else:
-                results['_meta']['hostvars'][vm]['ansible_host'] = proxmox_api.openvz_ip_address(node, vmid)
-            
+             # IF IP is empty (due DHCP, take hostname instead)
+                if proxmox_api.openvz_ip_address(node, vm) != False:
+                    results['_meta']['hostvars'][vm]['ansible_host'] = proxmox_api.openvz_ip_address(node, vmid)
+                else:
+                    results['_meta']['hostvars'][vm]['ansible_host'] = proxmox_api.lxc_hostname(node, vmid)
+
             if 'groups' in metadata:
                 # print metadata
                 for group in metadata['groups']:

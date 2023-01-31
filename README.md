@@ -62,7 +62,9 @@ You may also save your settings in a JSON file with the same name of the Python 
     "url": "https://10.0.0.1:8006/",
     "username": "apiuser@pve",
     "password": "apiuser1234",
-    "validateCert": false
+    "validateCert": false,
+    "include": [".*"],
+    "exclude": []
 }
 ```
 

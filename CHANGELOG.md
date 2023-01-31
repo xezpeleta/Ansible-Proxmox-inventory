@@ -1,4 +1,7 @@
 # Changelog
+## 1.0.3
+
+- Added function to take "hostname" as ansible_hostname from API if LXC uses DHCP-leases
 
 ## v1.0.2
 - Proxmox v7 compatibility check if template key exists (by @maynero) [#39](https://github.com/xezpeleta/Ansible-Proxmox-inventory/pull/39)

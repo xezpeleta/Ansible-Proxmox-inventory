@@ -120,6 +120,10 @@ class ProxmoxAPI(object):
                             options.password = config_data["password"]
                         except KeyError:
                             options.password = None
+                    if not options.include:
+                        options.include = config_data["include"]
+                    if not options.exclude:
+                        options.exclude = config_data["exclude"]
 
         if not options.url:
             raise Exception('Missing mandatory parameter --url (or PROXMOX_URL or "url" key in config file).')
@@ -252,33 +256,48 @@ class ProxmoxAPI(object):
 
         ip_address = None
         networks = self.get('api2/json/nodes/{0}/qemu/{1}/agent/network-get-interfaces'.format(node, vm))['result']
+        
         if networks:
             if type(networks) is dict:
                 for network in networks:
-                    for ip_address in ['ip-address']:
-                        try:
-                            # IP address validation
-                            if socket.inet_aton(ip_address):
-                                # Ignore localhost
-                                if ip_address != '127.0.0.1':
-                                    system_info.ip_address = ip_address
-                        except socket.error:
-                            pass
-            elif type(networks) is list:
-                for network in networks:
-                    if 'ip-addresses' in network:
-                        for ip_address in network['ip-addresses']:
+                    if self.valid_network_interface(network):
+                        for ip_address in network['ip-address']:
                             try:
                                 # IP address validation
-                                if socket.inet_aton(ip_address['ip-address']):
-                                    # Ignore localhost
-                                    if ip_address['ip-address'] != '127.0.0.1':
-                                        system_info.ip_address = ip_address['ip-address']
+                                if ip_address['ip-address'] != '127.0.0.1' and socket.inet_aton(ip_address['ip-address']):
+                                    system_info.ip_address = ip_address
+                            except socket.error:
+                                pass
+            elif type(networks) is list:
+                for network in networks:
+                    if self.valid_network_interface(network):
+                        for ip_address in network['ip-addresses']:
+                            try:
+                                if ip_address['ip-address'] != '127.0.0.1' and socket.inet_aton(ip_address['ip-address']):
+                                    system_info.ip_address = ip_address['ip-address']
                             except socket.error:
                                 pass
 
         return system_info
 
+    def valid_network_interface(self, network):
+        if 'ip-addresses' not in network:
+            return False
+        
+        # Include/Exclude are mutally exclusive
+        if len(self.options.include) > 0:
+            for regex in self.options.include:
+                if re.match(regex, network["name"]):
+                    return True
+            return False
+        
+        if len(self.options.exclude) > 0:
+            for regex in self.options.exclude:
+                if re.match(regex, network["name"]):
+                    return False
+            return True
+        
+        return True
 
 class SystemInfo(object):
     id = ""
@@ -445,6 +464,8 @@ def main():
     parser.add_option('--password', default=os.environ.get('PROXMOX_PASSWORD'), dest='password')
     parser.add_option('--pretty', action="store_true", default=False, dest='pretty')
     parser.add_option('--trust-invalid-certs', action="store_false", default=bool_validate_cert, dest='validate')
+    parser.add_option('--include', action="append", default=[])
+    parser.add_option('--exclude', action="append", default=[])
     (options, args) = parser.parse_args()
 
     if options.list:

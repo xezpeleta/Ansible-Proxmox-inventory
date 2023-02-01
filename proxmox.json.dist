@@ -3,6 +3,6 @@
     "username": "apiuser@pve",
     "password": "apiuser1234",
     "validateCert": false,
-    "interfaceInclude": [".*"],
-    "interfaceExclude": []
+    "include": [".*"],
+    "exclude": []
 }

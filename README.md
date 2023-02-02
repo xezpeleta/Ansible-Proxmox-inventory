@@ -1,7 +1,4 @@
 # Ansible-Proxmox-inventory
-## FORK
-
-This fork applied a patch , which uses the CT Name as ansible_host. So you can use DHCP-assingments. (FQDN needs to be resolvable by ansible) 
 ## About
 
 Proxmox dynamic inventory for Ansible. Based on [original plugin](https://raw.githubusercontent.com/ansible/ansible/devel/contrib/inventory/proxmox.py) from Mathieu Gauthier-Lafaye
@@ -15,6 +12,7 @@ It will generate an inventory on the fly with all your VMs stored in your Proxmo
 Resolvable VM AND CT names: the inventory script collects the VM/CT names (and not IP addresses!). 
 That's why your computer must be able to resolve these names; either with the DNS server or your */etc/hosts* 
 
+*Update*: IP detection has been implemented (*quemu-agent* is required). When the VMs have multiple ethernet interfaces, it is possible to include/exclude the interfaces you want.
 
 ### Features
 

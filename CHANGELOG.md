@@ -1,7 +1,7 @@
 # Changelog
 ## v1.0.3
 
-- Improved network interface filtering (by @grayonio) [#43](https://github.com/xezpeleta/Ansible-Proxmox-inventory/pull/43)[#50](https://github.com/xezpeleta/Ansible-Proxmox-inventory/pull/50)
+- Improved network interface filtering (by @graytonio) [#43](https://github.com/xezpeleta/Ansible-Proxmox-inventory/pull/43)[#50](https://github.com/xezpeleta/Ansible-Proxmox-inventory/pull/50)
 - Added function to take "hostname" as ansible_hostname from API if LXC uses DHCP-leases (by @standadHD) [#47](https://github.com/xezpeleta/Ansible-Proxmox-inventory/pull/47)
 
 ## v1.0.2

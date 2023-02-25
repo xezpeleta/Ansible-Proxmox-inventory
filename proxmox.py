@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Copyright (C) 2014  Mathieu GAUTHIER-LAFAYE <gauthierl@lapth.cnrs.fr>
 #
@@ -443,7 +443,7 @@ def split_tags(proxmox_tags: str) -> list[str]:
     """
     Splits proxmox_tags delimited by comma and returns a list of the tags.
     """
-    tags = proxmox_tags.split(',')
+    tags = proxmox_tags.split(';')
     return tags
 
 def main_host(options, config_path):

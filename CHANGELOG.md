@@ -1,6 +1,9 @@
 # Changelog
-## v1.0.3
 
+## v1.0.4
+- Create groups based on tags (by @apigban) https://github.com/xezpeleta/Ansible-Proxmox-inventory/pull/51
+
+## v1.0.3
 - Improved network interface filtering (by @graytonio) [#43](https://github.com/xezpeleta/Ansible-Proxmox-inventory/pull/43)[#50](https://github.com/xezpeleta/Ansible-Proxmox-inventory/pull/50)
 - Added function to take "hostname" as ansible_hostname from API if LXC uses DHCP-leases (by @standadHD) [#47](https://github.com/xezpeleta/Ansible-Proxmox-inventory/pull/47)
 

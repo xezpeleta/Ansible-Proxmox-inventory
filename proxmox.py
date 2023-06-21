@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Copyright (C) 2014  Mathieu GAUTHIER-LAFAYE <gauthierl@lapth.cnrs.fr>
 #
@@ -415,6 +415,21 @@ def main_list(options, config_path):
                         }
                     results[osid]['hosts'] += [vm]
 
+            # Create group 'based on proxmox_tags'
+            # so you can: --limit 'worker,external-datastore'
+            try:
+                tags = results['_meta']['hostvars'][vm]['proxmox_tags']
+                vm_name = results['_meta']['hostvars'][vm]['proxmox_name']
+                tag_list = split_tags(tags)
+                for i in range(len(tag_list)):
+                    if tag_list[i] not in results:
+                        results[tag_list[i]] = {
+                            'hosts': []
+                        }
+                    results[tag_list[i]]['hosts'] += [vm]
+            except KeyError:
+                pass
+           
             results['_meta']['hostvars'][vm].update(metadata)
 
     # pools
@@ -422,9 +437,14 @@ def main_list(options, config_path):
         results[pool] = {
             'hosts': proxmox_api.pool(pool).get_members_name(),
         }
-
     return results
 
+def split_tags(proxmox_tags: str) -> list[str]:
+    """
+    Splits proxmox_tags delimited by comma and returns a list of the tags.
+    """
+    tags = proxmox_tags.split(';')
+    return tags
 
 def main_host(options, config_path):
     proxmox_api = ProxmoxAPI(options, config_path)
@@ -479,7 +499,7 @@ def main():
     indent = None
     if options.pretty:
         indent = 2
-
+#TODO
     print((json.dumps(data, indent=indent)))
 
 

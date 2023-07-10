@@ -88,7 +88,7 @@ class ProxmoxPoolList(list):
 
 class ProxmoxVersion(dict):
     def get_version(self):
-        return float(self['version'].split('-')[0])
+        return float(self['version'].split('.')[0])
 
 
 class ProxmoxPool(dict):

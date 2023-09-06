@@ -120,6 +120,16 @@ class ProxmoxAPI(object):
                             options.password = config_data["password"]
                         except KeyError:
                             options.password = None
+                    if not options.token:
+                        try:
+                            options.token = config_data["token"]
+                        except KeyError:
+                            options.token = None
+                    if not options.secret:
+                        try:
+                            options.secret = config_data["secret"]
+                        except KeyError:
+                            options.secret = None
                     if not options.include:
                         options.include = config_data["include"]
                     if not options.exclude:
@@ -130,34 +140,40 @@ class ProxmoxAPI(object):
         elif not options.username:
             raise Exception(
                 'Missing mandatory parameter --username (or PROXMOX_USERNAME or "username" key in config file).')
-        elif not options.password:
+        elif not options.password and (not options.token or not options.secret):
             raise Exception(
-                'Missing mandatory parameter --password (or PROXMOX_PASSWORD or "password" key in config file).')
+                'Missing mandatory parameter --password (or PROXMOX_PASSWORD or "password" key in config file) or alternatively --token and --secret (or PROXMOX_TOKEN and PROXMOX_SECRET or "token" and "secret" key in config file).')
 
         # URL should end with a trailing slash
         if not options.url.endswith("/"):
             options.url = options.url + "/"
 
     def auth(self):
-        request_path = '{0}api2/json/access/ticket'.format(self.options.url)
+        if not self.options.token or not self.options.secret:
+            request_path = '{0}api2/json/access/ticket'.format(self.options.url)
 
-        request_params = parse.urlencode({
-            'username': self.options.username,
-            'password': self.options.password,
-        })
+            request_params = parse.urlencode({
+                'username': self.options.username,
+                'password': self.options.password,
+            })
 
-        data = json.load(open_url(request_path, data=request_params,
-                                  validate_certs=self.options.validate))
+            data = json.load(open_url(request_path, data=request_params,
+                                    validate_certs=self.options.validate))
 
-        self.credentials = {
-            'ticket': data['data']['ticket'],
-            'CSRFPreventionToken': data['data']['CSRFPreventionToken'],
-        }
+            self.credentials = {
+                'ticket': data['data']['ticket'],
+                'CSRFPreventionToken': data['data']['CSRFPreventionToken'],
+            }
 
     def get(self, url, data=None):
         request_path = '{0}{1}'.format(self.options.url, url)
 
-        headers = {'Cookie': 'PVEAuthCookie={0}'.format(self.credentials['ticket'])}
+        headers = {}
+        if not self.options.token or not self.options.secret:
+            headers['Cookie'] = 'PVEAuthCookie={0}'.format(self.credentials['ticket'])
+        else:
+            headers['Authorization'] = 'PVEAPIToken={0}!{1}={2}'.format(self.options.username, self.options.token, self.options.secret)
+        
         request = open_url(request_path, data=data, headers=headers,
                            validate_certs=self.options.validate)
 

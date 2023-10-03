@@ -4,5 +4,7 @@
     "password": "apiuser1234",
     "validateCert": false,
     "include": [".*"],
-    "exclude": []
+    "exclude": [],
+    "token": "api-token-name",
+    "secret": "api-token-secret"
 }

@@ -18,6 +18,7 @@ That's why your computer must be able to resolve these names; either with the DN
 
 - **ProxmoxVE cluster**: if your have a ProxmoxVE cluster, it will gather the whole VM list from your cluster
 - **Advanced filtering**: you can filter the VM list based in their status or a custom tag included in the `Notes` field
+- **Authenticate witch PVE API Token**: instead of using username and password, you can use the username together with the PVE API Token
 
 ## Instructions
 
@@ -39,6 +40,16 @@ python /etc/ansible/proxmox.py \
   --trust-invalid-certs \
   --list --pretty
 ```
+Alternative configuration with PVE API Token:
+```sh
+python /etc/ansible/proxmox.py \
+  --url=https://<your-proxmox-url>:8006/ \
+  --username=<proxmox-username> \
+  --token=<api-token-name> \
+  --secret=<api-token-secret> \
+  --trust-invalid-certs \
+  --list --pretty
+```
 
 If you get a list with all the VM in your Proxmox cluster, everything is ok.
 
@@ -52,6 +63,16 @@ export PROXMOX_USERNAME=apiuser@pve
 export PROXMOX_PASSWORD=apiuser1234
 export PROXMOX_INVALID_CERT=False
 ```
+Alternative configuration with PVE API Token:
+```sh
+# You also can do that using the file setenv.sh
+# Run the command: "source setenv.sh"
+export PROXMOX_URL=https://10.0.0.1:8006/
+export PROXMOX_USERNAME=apiuser@pve
+export PROXMOX_INVALID_CERT=False
+export PROXMOX_TOKEN=api_token_name
+export PROXMOX_SECRET=api_token_secret
+```
 
 You may also save your settings in a JSON file with the same name of the Python script, in its same folder (e.g.: if the downloaded script is `/etc/ansible/proxmox.py`, the configuration file will be `/etc/ansible/proxmox.json`): 
 
@@ -63,6 +84,18 @@ You may also save your settings in a JSON file with the same name of the Python 
     "validateCert": false,
     "include": [".*"],
     "exclude": []
+}
+```
+Alternative configuration with PVE API Token:
+```json
+{
+    "url": "https://10.0.0.1:8006/",
+    "username": "apiuser@pve",
+    "validateCert": false,
+    "include": [".*"],
+    "exclude": [],
+    "token": "api-token-name",
+    "secret": "api-token-secret"
 }
 ```
 

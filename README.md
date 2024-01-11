@@ -144,6 +144,19 @@ So if you want to exclude Windows machines, you could do the following:
 ansible-playbook -i /etc/ansible/proxmox.py --limit='running,!windows' playbook-example/playbook.yml
 ```
 
+You can also pass regex filters for the network interfaces to use on your VM hosts.
+
+```bash
+# Ignore any docker network interfaces when determining the IP address
+python proxmox.py --list --exclude "docker.*"
+```
+
+You can pass multiple parameters of either exclude or include but you cannot use both include and exclude in a single run.  These parameters can also be configured in the config file or through and ENV separated by a `;`
+
+```bash
+export EXCLUDE_LIST="docker.*;veth.*"
+```
+
 ## Examples
 
 #### Show Linux distribution version for every VM in Proxmox cluster:

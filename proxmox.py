@@ -131,9 +131,15 @@ class ProxmoxAPI(object):
                         except KeyError:
                             options.secret = None
                     if not options.include:
-                        options.include = config_data["include"]
+                        try:
+                            options.include = config_data["include"]
+                        except KeyError:
+                            options.include =  []
                     if not options.exclude:
-                        options.exclude = config_data["exclude"]
+                        try:
+                            options.exclude = config_data["exclude"]
+                        except KeyError:
+                            options.exclude = []
 
         if not options.url:
             raise Exception('Missing mandatory parameter --url (or PROXMOX_URL or "url" key in config file).')
